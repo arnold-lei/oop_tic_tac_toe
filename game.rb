@@ -25,8 +25,8 @@
 
 class Board
 	def initialize
-	@position = {}
-	(1..9).each {|space| @position[space] = Square.new(' ')}
+		@position = {}
+		(1..9).each {|space| @position[space] = Square.new(' ')}
 	#note to self when you initialize a Square you it requires a value and that value is ' ' 
 	end
 	def empty_squares
@@ -35,6 +35,20 @@ class Board
 	def no_free
 		empty_squares.length == 0
 	end
+	def draw
+		system 'clear'
+		puts "This is the game board:"
+	
+
+    puts "#{@position[1].marker}   |#{@position[2].marker}    |#{@position[3].marker} "
+    puts "- - + - - + - - "
+    puts "#{@position[4].marker}   |#{@position[5].marker}    |#{@position[6].marker} "
+    puts "- - + - - + - - "
+    puts "#{@position[7].marker}   |#{@position[8].marker}    |#{@position[9].marker} "
+	end
+	def mark(position, marker)
+		@position[position] = marker
+	end
 end
 
 class Square
@@ -42,15 +56,55 @@ class Square
 	def initialize(marker)
 		@marker = marker 
 	end
+	def occupied?
+		@marker != ' '
+	end
+end
+
+class Player
+	attr_accessor :name, :mark
+	def initialize(name, mark)
+		@name = name
+		@mark = mark
+	end
+end
+
+class Human < Player
+	def initialize(name, mark)
+		super
+	end
+	def pick 
+		puts "#{name} have picked this space"
+	end
+end
+
+class Computer < Player 
+	def initialize(name, mark)
+		super
+	end
+	def pick 
+		puts "#{name}has picked this space"
+		pick = Board::empty_squares
+		@board.mark(pick, mark)
+	end
 end
 
 class Game
 	def initialize 
 		@board = Board.new
+		@human = Human.new("Arnold", "X")
+		@computer = Computer.new("Hal 9000", "O")
+	end
+	def intro
+		puts "Welcome to Tic Tac Toe"
 	end
 	def play
-		p @board.empty_squares
+		intro 
+		@board.draw
+		@human.pick
+		@computer.pick
 	end
 end
-game = Game.new
-game.play
+
+
+game = Game.new.play
