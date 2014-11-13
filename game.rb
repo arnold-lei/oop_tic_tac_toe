@@ -22,33 +22,53 @@
   #it's a tie
 
 #puts "Welcome to tic tac toe, would you like to be X or O? Pick one (X/O)"
+require 'pry'
 
 class Board
+	WINNING_LINES = [[1,4,7],[2,5,8],[3,6,9],[1,5,9],[3,5,7],[1,2,3],[4,5,6],[7,8,9]]
+
 	def initialize
 		@position = {}
 		(1..9).each {|space| @position[space] = Square.new(' ')}
 	#note to self when you initialize a Square you it requires a value and that value is ' ' 
 	end
+	
 	def empty_squares
-		@position.select {|position, square| square.marker == ' '}.values	
+		@position.select {|position, square| square.to_s == ' '}.values	
 	end
+	
+	def empty_positions
+		@position.select {|_, square| square.empty?}.keys
+	end
+	
 	def no_free
 		empty_squares.length == 0
 	end
+	
 	def draw
 		system 'clear'
 		puts "This is the game board:"
 	
 
-    puts "#{@position[1].marker}   |#{@position[2].marker}    |#{@position[3].marker} "
+    puts " #{@position[1]}  |  #{@position[2]}  | #{@position[3]} "
     puts "- - + - - + - - "
-    puts "#{@position[4].marker}   |#{@position[5].marker}    |#{@position[6].marker} "
+    puts " #{@position[4]}  |  #{@position[5]}  | #{@position[6]} "
     puts "- - + - - + - - "
-    puts "#{@position[7].marker}   |#{@position[8].marker}    |#{@position[9].marker} "
+    puts " #{@position[7]}  |  #{@position[8]}  | #{@position[9]} "
 	end
+	
 	def mark(position, marker)
 		@position[position] = marker
 	end
+
+	def winning_condition(markers)
+		WINNING_LINES.each do |line|
+			return true if @position[line[0]] == markers && @position[line[1]] == markers && @position[line[2]] == markers
+			end
+			 false 
+			end
+
+
 end
 
 class Square
@@ -56,8 +76,17 @@ class Square
 	def initialize(marker)
 		@marker = marker 
 	end
+	
 	def occupied?
 		@marker != ' '
+	end
+
+	def empty?
+		@marker == ' '
+	end
+
+	def to_s
+	 @marker
 	end
 end
 
@@ -73,8 +102,15 @@ class Human < Player
 	def initialize(name, mark)
 		super
 	end
-	def pick 
-		puts "#{name} have picked this space"
+
+	def pick(board)
+		puts "Please pick between positions 1-9"
+		choice = gets.chomp.to_i
+		until board.empty_positions.include?(choice) do 
+			puts "The position must be empty, please pick again from postions 1-9"
+			choice = gets.chomp.to_i 	
+		end
+		board.mark(choice, @mark)		
 	end
 end
 
@@ -82,14 +118,15 @@ class Computer < Player
 	def initialize(name, mark)
 		super
 	end
-	def pick 
-		puts "#{name}has picked this space"
-		pick = Board::empty_squares
-		@board.mark(pick, mark)
+
+	def pick(board)
+		choice = board.empty_positions.sample
+		board.mark(choice, @mark)
 	end
 end
 
 class Game
+	attr_accessor :board, :human, :computer
 	def initialize 
 		@board = Board.new
 		@human = Human.new("Arnold", "X")
@@ -98,11 +135,35 @@ class Game
 	def intro
 		puts "Welcome to Tic Tac Toe"
 	end
+
+	def current_player
+		if @current_player == @human
+			@current_player = @computer
+		else
+			@current_player = @human
+		end
+	end
+
+	def win?
+		@board.winning_condition(@current_player.mark)
+	end
+
 	def play
 		intro 
 		@board.draw
-		@human.pick
-		@computer.pick
+		loop do 
+			current_player.pick(@board)
+			@board.draw
+			if win?
+				puts "#{@current_player.name} has won!"
+				break
+			elsif @board.no_free
+				puts "it's a tie"
+				break
+			else 
+			 @board.draw
+			end
+		end
 	end
 end
 
